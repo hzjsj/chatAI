@@ -268,40 +268,48 @@ const Independent: React.FC = () => {
   const [agent] = useXAgent({
     request: async ({ message }, { onSuccess,onUpdate }) => {
 
-      const fullContent = `Streaming output instead of Bubble typing effect. You typed: ${message}`;
-      let currentContent = '';
+      // const fullContent = `Streaming output instead of Bubble typing effect. You typed: ${message}`;
+      // let currentContent = '';
 
-      const id = setInterval(() => {
-        currentContent = fullContent.slice(0, currentContent.length + 2);
-        onUpdate(currentContent);
+      // const id = setInterval(() => {
+      //   currentContent = fullContent.slice(0, currentContent.length + 2);
+      //   onUpdate(currentContent);
 
-        if (currentContent === fullContent) {
-          clearInterval(id);
-          onSuccess(fullContent);
+      //   if (currentContent === fullContent) {
+      //     clearInterval(id);
+      //     onSuccess(fullContent);
+      //   }
+      // }, 100);
+      const res = await aiModel.streamText({
+        model: "deepseek-r1",
+        messages: [
+          { role: "user", content: `${message}` },
+        ],
+      });
+      let currentThink = "";
+      let currentContent = "";
+      // 当使用 deepseek-r1 时，模型会生成思维链内容
+      for await (let data of res.dataStream) {
+        // 打印思维链内容
+        const think = (data?.choices?.[0]?.delta)?.reasoning_content;
+        if (think) {
+          currentThink+=think;
+          console.log(think);
+          onUpdate(currentThink);
         }
-      }, 100);
-      // const res = await aiModel.streamText({
-      //   model: "deepseek-r1",
-      //   messages: [
-      //     { role: "user", content: `${message}` },
-      //   ],
-      // });
 
-      // // 当使用 deepseek-r1 时，模型会生成思维链内容
-      // for await (let data of res.dataStream) {
-      //   // 打印思维链内容
-      //   const think = (data?.choices?.[0]?.delta)?.reasoning_content;
-      //   if (think) {
-      //     console.log(think);
-      //   }
+        // 打印生成文本内容
+        const text = data?.choices?.[0]?.delta?.content;
+        if (text) {
+          currentContent+=text;
+          console.log(text);
+        }
+      }
+      onSuccess(`${currentThink} \n ${currentContent}`);
+      console.log("currentThink:",currentThink);
+      console.log("currentContent:",currentContent);
 
-      //   // 打印生成文本内容
-      //   const text = data?.choices?.[0]?.delta?.content;
-      //   if (text) {
-      //     console.log(text);
-      //   }
-      // }
-      // onSuccess(`Mock success return. You said: ${message}`);
+      //onSuccess(`Mock success return. You said: ${message}`+currentThink+currentContent);
     },
   });
 

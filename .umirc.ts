@@ -11,7 +11,7 @@ export default defineConfig({
   },
   routes: [
     {
-      path: '/',
+      path: '/home',
       redirect: '/home',
     },
     {
@@ -26,7 +26,7 @@ export default defineConfig({
     },
     {
       name: 'Chat',
-      path: '/chat',
+      path: '/',
       component: './Chat',
       layout: false,
     },
