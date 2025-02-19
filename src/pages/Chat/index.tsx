@@ -25,6 +25,7 @@ import {
 } from '@ant-design/icons';
 import { Badge, Button, type GetProp, Space } from 'antd';
 
+// ==================== 腾讯云云开发内容 ====================
 // 云开发内核
 import cloudbase from "@cloudbase/js-sdk/app"
 // 登录模块
@@ -53,6 +54,33 @@ const ai = await app.ai();
 
 // 创建模型
 const aiModel = ai.createModel("deepseek");
+const initAi = async () => {
+  const res = await aiModel.streamText({
+    model: "deepseek-r1",
+    messages: [
+      { role: "user", content: "你好，你叫什么名字" },
+    ],
+  });
+
+  // 当使用 deepseek-r1 时，模型会生成思维链内容
+  for await (let data of res.dataStream) {
+    // 打印思维链内容
+    const think = (data?.choices?.[0]?.delta)?.reasoning_content;
+    if (think) {
+      console.log(think);
+    }
+
+    // 打印生成文本内容
+    const text = data?.choices?.[0]?.delta?.content;
+    if (text) {
+      console.log(text);
+    }
+  }
+}
+
+//initAi();
+// ==================== end ====================
+
 
 const renderTitle = (icon: React.ReactElement, title: string) => (
   <Space align="start">
@@ -146,7 +174,6 @@ const useStyle = createStyles(({ token, css }) => {
   };
 });
 
-// Hot Topics Design Guide Lists
 const placeholderPromptsItems: GetProp<typeof Prompts, 'items'> = [
   {
     key: '1',
@@ -220,7 +247,6 @@ const roles: GetProp<typeof Bubble.List, 'roles'> = {
   },
 };
 
-// above content is constant
 const Independent: React.FC = () => {
   // ==================== Style ====================
   const { styles } = useStyle();
@@ -240,42 +266,42 @@ const Independent: React.FC = () => {
 
   // ==================== Runtime ====================
   const [agent] = useXAgent({
-    request: async ({ message }, { onSuccess, onUpdate }) => {
+    request: async ({ message }, { onSuccess,onUpdate }) => {
 
+      const fullContent = `Streaming output instead of Bubble typing effect. You typed: ${message}`;
       let currentContent = '';
-      let fullContent = '';
-      const res = await aiModel.streamText({
-        model: "deepseek-r1",
-        messages: [
-          { role: "user", content: `${message}` },
-        ],
-      });
-      // 当使用 deepseek-r1 时，模型会生成思维链内容
-      for await (let data of res.dataStream) {
-        // 打印思维链内容
-        const think = (data?.choices?.[0]?.delta)?.reasoning_content;
-        currentContent = think ? currentContent + think : currentContent;
-        //onUpdate(currentContent);
-        console.log(currentContent);
-        // if (think) {
-        //   currentContent = currentContent + think;
-        //   onUpdate(currentContent);
-        //   console.log(currentContent);
-        // }
 
-        // 打印生成文本内容
-        const text = data?.choices?.[0]?.delta?.content;
-        fullContent = text ? fullContent + text : fullContent;
-        onSuccess(fullContent);
+      const id = setInterval(() => {
+        currentContent = fullContent.slice(0, currentContent.length + 2);
+        onUpdate(currentContent);
 
-        if (text) {
-          // console.log(text)
-          // currentContent = currentContent + text;
-          // console.log(currentContent);
-          // onUpdate(currentContent);
+        if (currentContent === fullContent) {
+          clearInterval(id);
+          onSuccess(fullContent);
         }
-      }
+      }, 100);
+      // const res = await aiModel.streamText({
+      //   model: "deepseek-r1",
+      //   messages: [
+      //     { role: "user", content: `${message}` },
+      //   ],
+      // });
 
+      // // 当使用 deepseek-r1 时，模型会生成思维链内容
+      // for await (let data of res.dataStream) {
+      //   // 打印思维链内容
+      //   const think = (data?.choices?.[0]?.delta)?.reasoning_content;
+      //   if (think) {
+      //     console.log(think);
+      //   }
+
+      //   // 打印生成文本内容
+      //   const text = data?.choices?.[0]?.delta?.content;
+      //   if (text) {
+      //     console.log(text);
+      //   }
+      // }
+      // onSuccess(`Mock success return. You said: ${message}`);
     },
   });
 
@@ -351,7 +377,7 @@ const Independent: React.FC = () => {
 
   const items: GetProp<typeof Bubble.List, 'items'> = messages.map(({ id, message, status }) => ({
     key: id,
-    loading: status === 'loading',
+    //loading: status === 'loading',  
     role: status === 'local' ? 'local' : 'ai',
     content: message,
   }));
