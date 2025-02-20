@@ -42,6 +42,5 @@ export default defineConfig({
     },
   ],
   npmClient: 'npm',
-  esbuildMinifyIIFE: true
+  esbuildMinifyIIFE: true, // build index.html
 });
-
