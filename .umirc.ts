@@ -11,6 +11,12 @@ export default defineConfig({
   },
   routes: [
     {
+      name: '登入',
+      path: '/user/login',
+      component: './User/Login',
+      layout: false,
+    },
+    {
       path: '/home',
       redirect: '/home',
     },
