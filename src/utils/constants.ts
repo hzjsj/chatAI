@@ -1,7 +1,7 @@
 /**
  * CMS 资源名前缀
  */
-export const RESOURCE_PREFIX = WX_MP ? 'wx-ext-cms' : 'tcb-ext-cms'
+export const RESOURCE_PREFIX = 'tcb-ext-cms'
 
 export const codeMessage = {
   200: '服务器成功返回请求的数据。',

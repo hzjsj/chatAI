@@ -19,8 +19,17 @@ import type { CSSProperties } from 'react';
 import { useState } from 'react';
 import styles from './index.less';
 
+import { getVerification, verification } from '@/utils';
 
 type LoginType = 'phone' | 'account';
+
+interface LoginParamsType {
+  username: string;
+  password: string;
+  mobile: string;
+  captcha: string;
+  type?: string;
+}
 
 export default () => {
   const { token } = theme.useToken();
@@ -33,10 +42,51 @@ export default () => {
     verticalAlign: 'middle',
     cursor: 'pointer',
   };
+  const [verificationId, setVerificationId] = useState(
+    'eyJhbGciOiJSUzI1NiIsImtpZCI6IjlkMWRjMzFlLWI0ZDAtNDQ4Yi1hNzZmLWIwY2M2M2Q4MTQ5OCJ9.eyJleHAiOjE3NDA2MjMyNTIsImtpZCI6IjY3MTI0MDgyLWY3ZWQtNGYxOC04NWRmLTA3OWE1OWFhY2M0MCIsInAiOiIrODYgMTkzNTUzNTA1MjUiLCJwaiI6Imxvd2NvZGUtOWc4Nms0aGJjODdkZmY3YyIsInQiOiJBR055Y0hRT0F3Nnl3VlBPIn0.NWV1UKLPHk62z2mSN0ac7r7jcB7j9sB9T6ZuNbAcpoAAUPZjmK7i29m-fl596fROGurz5nRoo-m6dtKVKXPIEnwFNgyev-PeJLMemH0OqnJ4tzza7LChxg7YEHuC066pbjEf_MSVwe_XvzAiimUxdhNUnl-pOwcpZ-iZeCf30xnL69wq3ekXsaQq8pfpogNR6rYu2xbMqS3iuXqbABnHZHs9wrHYXV9QwejAwCIychcOQD2uRXSpQMlg2c95ItdoFP0lztKcJY1qJWju4IBPf7aa60Pypxwe2uj9Lw1j1G4uLJB51JxeXigKIeK28ZYEeb3wzwaevzHnpprR_FKbzQ',
+  );
+
+  // const getMobile = async()=>{
+
+  // }
+  const handleSubmit = async (values: LoginParamsType) => {
+    if (loginType === 'phone') {
+      const { mobile, captcha } = values;
+      try {
+        const loginInfo = await verification(mobile, verificationId, captcha);
+        message.success('登录成功');
+        console.log('loginInfo', loginInfo);
+      } catch (error) {
+        // 登录异常
+        console.log(error);
+      }
+    }
+    // console.log('LoginParamsType', values);
+    // // setSubmitting(true);
+    // // setLoginErrorMessage('');
+
+    // const { username, password } = values;
+
+    // let loginSuccess = false;
+    // try {
+    //   // 用户名密码登录
+    //   await loginWithPassword(username.trim(), password.trim());
+    //   message.success('登录成功');
+    // } catch (error) {
+    //   // 登录异常
+    //   console.log(error);
+    // }
+
+    // //setSubmitting(false);
+    // return Promise.resolve(loginSuccess);
+  };
 
   return (
     <ProConfigProvider hashed={false}>
-      <div className={styles.container} style={{ backgroundColor: token.colorBgContainer }}>
+      <div
+        className={styles.container}
+        style={{ backgroundColor: token.colorBgContainer }}
+      >
         <LoginForm
           logo="https://github.githubassets.com/favicons/favicon.png"
           title="Github"
@@ -49,9 +99,12 @@ export default () => {
               <WeiboCircleOutlined style={iconStyles} />
             </Space>
           }
-          onFinish={async (values) => {
-            console.log("onFinish",values)
-            // await handleSubmit(values as API.LoginParams);
+          // onFinish={async (values) => {
+          //   //console.log("onFinish",values)
+          //   await handleSubmit(values as API.LoginParams);
+          // }}
+          onFinish={(values) => {
+            handleSubmit(values as LoginParamsType);
           }}
         >
           <Tabs
@@ -133,6 +186,7 @@ export default () => {
                   prefix: <MobileOutlined className={'prefixIcon'} />,
                 }}
                 name="mobile"
+                initialValue={19355350525}
                 placeholder={'手机号'}
                 rules={[
                   {
@@ -167,8 +221,15 @@ export default () => {
                     message: '请输入验证码！',
                   },
                 ]}
-                onGetCaptcha={async () => {
-                  message.success('获取验证码成功！验证码为：1234');
+                phoneName="mobile"
+                onGetCaptcha={async (phone) => {
+                  const phoneInfo = await getVerification(phone);
+                  console.log('phoneInfo.is_user', phoneInfo.is_user);
+                  if (phoneInfo) {
+                    console.log('phoneInfo', phoneInfo);
+                    message.success('获取验证码成功');
+                    setVerificationId(phoneInfo.verification_id);
+                  }
                 }}
               />
             </>
